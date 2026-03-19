@@ -16,6 +16,12 @@ const MODULE_ID = "dh-containers";
 /** Item types that can be placed inside a container */
 const CONTAINABLE_TYPES = ["loot", "consumable", "weapon", "armor"];
 
+/** Tracks last drag-over coordinates for drop target detection */
+let lastDragCoords = { x: 0, y: 0 };
+document.addEventListener("dragover", (event) => {
+    lastDragCoords = { x: event.clientX, y: event.clientY };
+});
+
 /* -------------------------------------------- */
 /* Initialization                               */
 /* -------------------------------------------- */
@@ -273,9 +279,7 @@ Hooks.on("dropActorSheetData", async (actor, _sheet, data) => {
     const droppedItem = fromUuidSync(data.uuid);
     if (!droppedItem || !CONTAINABLE_TYPES.includes(droppedItem.type) || droppedItem.parent?.id !== actor.id) return true;
 
-    // FIXME: window.event is deprecated. The hook signature may provide event coords or we should refactor
-    // to use a different approach for getting drop target coordinates (e.g., via pointerevents on sheet).
-    const targetEl = document.elementFromPoint(window.event.clientX, window.event.clientY);
+    const targetEl = document.elementFromPoint(lastDragCoords.x, lastDragCoords.y);
     const targetRow = targetEl?.closest("li.inventory-item");
 
     if (targetRow) {
