@@ -212,7 +212,14 @@ function _injectContainerToggle(row, item, actor, app) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = `dh-container-toggle ${isCollapsed ? "dh-toggle-collapsed" : "dh-toggle-expanded"}`;
-    btn.textContent = isCollapsed ? "Expand" : "Collapse";
+
+    // Create icon element
+    const icon = document.createElement("i");
+    icon.className = isCollapsed ? "fas fa-chevron-right" : "fas fa-chevron-down";
+    icon.style.marginRight = "6px";
+
+    btn.appendChild(icon);
+    btn.appendChild(document.createTextNode(isCollapsed ? "Expand" : "Collapse"));
 
     btn.addEventListener("click", async (ev) => {
         ev.preventDefault();
