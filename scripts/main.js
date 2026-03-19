@@ -226,7 +226,7 @@ function _injectContainerToggle(row, item, actor, app) {
         await item.setFlag(MODULE_ID, "isCollapsed", !isCollapsed);
     });
 
-    header.appendChild(btn);
+    header.insertBefore(btn, header.firstChild);
 }
 
 /* -------------------------------------------- */

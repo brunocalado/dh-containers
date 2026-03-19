@@ -18,8 +18,8 @@
 
 /* Collapse/expand toggle button on container rows */
 .dh-container-toggle {
-    margin-left: auto;
     padding: 6px 14px;
+    margin-right: 8px;
     cursor: pointer;
     font-size: 0.75em;
     font-weight: 600;
