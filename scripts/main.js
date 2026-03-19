@@ -196,25 +196,25 @@ function handleActorUI(app, element) {
 }
 
 /**
- * Injects a collapse/expand toggle icon into a container item's name span.
- * The icon click toggles the isCollapsed flag on the container item.
+ * Injects a collapse/expand toggle button into a container item's controls area.
+ * The button toggles the isCollapsed flag on the container item.
  * @param {HTMLElement} row - The container item's list element.
  * @param {Item} item - The container item document.
  * @param {Actor} actor - The owning actor document.
  * @param {ApplicationV2} app - The actor sheet application.
  */
 function _injectContainerToggle(row, item, actor, app) {
-    const nameSpan = row.querySelector(".item-name");
-    if (!nameSpan || nameSpan.querySelector(".dh-container-toggle")) return;
+    const header = row.querySelector(".inventory-item-header");
+    if (!header || header.querySelector(".dh-container-toggle")) return;
 
     const isCollapsed = !!item.getFlag(MODULE_ID, "isCollapsed");
-    const iconClass = isCollapsed ? "fa-angle-down" : "fa-angle-up";
 
-    const toggle = document.createElement("i");
-    toggle.className = `fas ${iconClass} dh-container-toggle`;
-    toggle.title = isCollapsed ? "Expand container" : "Collapse container";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "dh-container-toggle";
+    btn.textContent = isCollapsed ? "Expand" : "Collapse";
 
-    toggle.addEventListener("click", async (ev) => {
+    btn.addEventListener("click", async (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
 
@@ -226,7 +226,7 @@ function _injectContainerToggle(row, item, actor, app) {
         await item.setFlag(MODULE_ID, "isCollapsed", !isCollapsed);
     });
 
-    nameSpan.appendChild(toggle);
+    header.appendChild(btn);
 }
 
 /* -------------------------------------------- */

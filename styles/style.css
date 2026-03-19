@@ -1,4 +1,4 @@
-/* DH Containers — Visual nesting styles for Daggerheart loot items */
+/* DH Containers — Visual nesting styles for Daggerheart items */
 
 /* Child item indentation inside a container */
 .dh-item-child {
@@ -8,14 +8,21 @@
     opacity: 0.85;
 }
 
-/* Collapse/expand toggle icon on container rows */
+/* Collapse/expand toggle button on container rows */
 .dh-container-toggle {
-    margin-left: 6px;
+    margin-left: auto;
+    padding: 2px 8px;
     cursor: pointer;
-    opacity: 0.7;
-    font-size: 0.85em;
+    font-size: 0.75em;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+    opacity: 0.8;
+    white-space: nowrap;
 }
 
 .dh-container-toggle:hover {
     opacity: 1;
+    background: rgba(255, 255, 255, 0.15);
 }
