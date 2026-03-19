@@ -2,6 +2,13 @@
  * DH Containers — Visual container organization for Daggerheart items.
  * Allows marking loot items as containers and visually nesting loot, consumable, weapon,
  * and armor items inside them.
+ *
+ * Module flags strategy:
+ * - `isContainer` (bool): Marks an item as a container that can hold other items.
+ * - `containerId` (string): ID of the parent container for a child item.
+ * - `isCollapsed` (bool): Tracks whether a container is expanded or collapsed.
+ * These are simple boolean/string flags without complex validation, so we use Foundry's
+ * native flag system rather than foundry.abstract.DataModel for efficiency and simplicity.
  */
 
 const MODULE_ID = "dh-containers";
@@ -23,6 +30,8 @@ Hooks.once("init", () => {
 
 /**
  * Saves scroll position before actor sheet re-renders to prevent jarring jumps.
+ * AppV2 re-renders trigger whenever item flags change (e.g., when toggling collapse state),
+ * which would reset the scroll position to top. We cache it here and restore it after render.
  * Triggered by preRenderApplicationV2 hook.
  * @param {ApplicationV2} app - The application being rendered.
  */
@@ -33,6 +42,7 @@ Hooks.on("preRenderApplicationV2", (app) => {
 
     const scrollable = html.querySelector(".scrollable");
     if (scrollable) {
+        // Store scroll position on the app instance to persist across re-renders
         app._dhContainerScroll = scrollable.scrollTop;
     }
 });
@@ -54,7 +64,8 @@ Hooks.on("renderApplicationV2", (app, html) => {
         const root = html instanceof HTMLElement ? html : html[0];
         injectItemUI(doc, root);
     } else if (doc?.documentName === "Actor") {
-        // Use app.element (live DOM) instead of html param which may be a detached fragment in AppV2
+        // In AppV2, the html parameter may be a detached DocumentFragment before full insertion.
+        // Use app.element (the live, rendered DOM) to ensure querySelector finds elements correctly.
         requestAnimationFrame(() => {
             const liveRoot = app.element;
             if (!liveRoot) return;
@@ -141,7 +152,8 @@ function handleActorUI(app, element) {
     /** @type {Map<string, string[]>} Maps container IDs to arrays of child item IDs */
     const childrenMap = new Map();
 
-    // First pass: build maps of rows and parent-child relationships
+    // First pass: build lookup maps to avoid repeated queries and DOM traversal in the second pass.
+    // This improves performance when handling many items and parent-child relationships.
     for (const row of inventoryItems) {
         const itemId = row.dataset.itemId;
         if (!itemId) continue;
@@ -152,6 +164,7 @@ function handleActorUI(app, element) {
 
         const parentId = item.getFlag(MODULE_ID, "containerId");
         if (parentId) {
+            // Track children by container ID so we can maintain their display order later
             if (!childrenMap.has(parentId)) childrenMap.set(parentId, []);
             childrenMap.get(parentId).push(itemId);
         }
@@ -164,7 +177,7 @@ function handleActorUI(app, element) {
         if (!item) continue;
 
         if (item.getFlag(MODULE_ID, "isContainer")) {
-            _injectContainerToggle(row, item, actor, app);
+            _injectContainerToggle(row, item, app);
         }
 
         const parentId = item.getFlag(MODULE_ID, "containerId");
@@ -173,12 +186,14 @@ function handleActorUI(app, element) {
             const parentItem = actor.items.get(parentId);
 
             if (parentRow && parentItem?.getFlag(MODULE_ID, "isContainer")) {
-                // Move child visually after its parent (or after the last sibling)
+                // DOM elements render in document order, so we must move children after their parent
+                // to create visual nesting. Foundry's default render doesn't know about our container hierarchy.
                 const siblings = childrenMap.get(parentId) || [];
                 const siblingIndex = siblings.indexOf(itemId);
                 let insertAfter = parentRow;
 
-                // Insert after previous sibling if exists, to maintain order
+                // Insert after the previous sibling (if exists) to preserve the intended item order.
+                // Without this, all children would be inserted right after the parent.
                 if (siblingIndex > 0) {
                     const prevSiblingRow = rowMap.get(siblings[siblingIndex - 1]);
                     if (prevSiblingRow) insertAfter = prevSiblingRow;
@@ -188,6 +203,7 @@ function handleActorUI(app, element) {
 
                 row.classList.add("dh-item-child");
 
+                // Hide child items if their container is collapsed, making collapse/expand feel natural
                 const isCollapsed = !!parentItem.getFlag(MODULE_ID, "isCollapsed");
                 row.style.display = isCollapsed ? "none" : "";
             }
@@ -197,13 +213,14 @@ function handleActorUI(app, element) {
 
 /**
  * Injects a collapse/expand toggle button into a container item's controls area.
- * The button toggles the isCollapsed flag on the container item.
+ * The button toggles the isCollapsed flag on the container item, which triggers a re-render
+ * that hides/shows child items in handleActorUI().
+ * Triggered during renderApplicationV2 for container items in handleActorUI().
  * @param {HTMLElement} row - The container item's list element.
  * @param {Item} item - The container item document.
- * @param {Actor} actor - The owning actor document.
  * @param {ApplicationV2} app - The actor sheet application.
  */
-function _injectContainerToggle(row, item, actor, app) {
+function _injectContainerToggle(row, item, app) {
     const header = row.querySelector(".inventory-item-header");
     if (!header || header.querySelector(".dh-container-toggle")) return;
 
@@ -213,8 +230,8 @@ function _injectContainerToggle(row, item, actor, app) {
     btn.type = "button";
     btn.className = `dh-container-toggle ${isCollapsed ? "dh-toggle-collapsed" : "dh-toggle-expanded"}`;
 
-    // Create icon element
     const icon = document.createElement("i");
+    // Use chevron icons to visually indicate expand/collapse state (right = collapsed, down = expanded)
     icon.className = isCollapsed ? "fas fa-chevron-right" : "fas fa-chevron-down";
     icon.style.marginRight = "6px";
 
@@ -225,7 +242,8 @@ function _injectContainerToggle(row, item, actor, app) {
         ev.preventDefault();
         ev.stopPropagation();
 
-        // Save scroll position before the flag update triggers a re-render
+        // Cache scroll position before updating the flag, which triggers a re-render
+        // and would otherwise jump the view back to the top (see preRenderApplicationV2 hook)
         const liveRoot = app.element;
         const scrollable = liveRoot?.querySelector(".scrollable");
         if (scrollable) app._dhContainerScroll = scrollable.scrollTop;
@@ -246,16 +264,17 @@ function _injectContainerToggle(row, item, actor, app) {
  * Dropping elsewhere removes the container assignment.
  * Triggered by dropActorSheetData hook.
  * @param {Actor} actor - The actor receiving the drop.
- * @param {ActorSheet} sheet - The actor sheet application.
  * @param {object} data - The drop data payload.
  * @returns {boolean|void} False to prevent default handling when item is assigned.
  */
-Hooks.on("dropActorSheetData", async (actor, sheet, data) => {
+Hooks.on("dropActorSheetData", async (actor, _sheet, data) => {
     if (data.type !== "Item" || !data.uuid) return true;
 
     const droppedItem = fromUuidSync(data.uuid);
     if (!droppedItem || !CONTAINABLE_TYPES.includes(droppedItem.type) || droppedItem.parent?.id !== actor.id) return true;
 
+    // FIXME: window.event is deprecated. The hook signature may provide event coords or we should refactor
+    // to use a different approach for getting drop target coordinates (e.g., via pointerevents on sheet).
     const targetEl = document.elementFromPoint(window.event.clientX, window.event.clientY);
     const targetRow = targetEl?.closest("li.inventory-item");
 
@@ -263,14 +282,16 @@ Hooks.on("dropActorSheetData", async (actor, sheet, data) => {
         const targetId = targetRow.dataset.itemId;
         const targetItem = actor.items.get(targetId);
 
-        // Only assign if target is a different item that is marked as a container
+        // Assign to container only if the target is marked as a container and is not the item itself.
+        // This prevents assigning an item to itself and ensures we only place items into valid containers.
         if (targetItem && targetItem.getFlag(MODULE_ID, "isContainer") && droppedItem.id !== targetId) {
             await droppedItem.setFlag(MODULE_ID, "containerId", targetId);
             return false;
         }
     }
 
-    // Dropped outside a container — remove from any container
+    // If dropped outside any container row, remove the item from its current container.
+    // This allows players to un-nest items by dragging them out.
     const currentParent = droppedItem.getFlag(MODULE_ID, "containerId");
     if (currentParent) {
         await droppedItem.unsetFlag(MODULE_ID, "containerId");
