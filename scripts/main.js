@@ -1,9 +1,13 @@
 /**
- * DH Containers — Visual container organization for Daggerheart loot items.
- * Allows marking loot items as containers and visually nesting other loot items inside them.
+ * DH Containers — Visual container organization for Daggerheart items.
+ * Allows marking loot items as containers and visually nesting loot, consumable, weapon,
+ * and armor items inside them.
  */
 
 const MODULE_ID = "dh-containers";
+
+/** Item types that can be placed inside a container */
+const CONTAINABLE_TYPES = ["loot", "consumable", "weapon", "armor"];
 
 /* -------------------------------------------- */
 /* Initialization                               */
@@ -45,16 +49,20 @@ Hooks.on("preRenderApplicationV2", (app) => {
  */
 Hooks.on("renderApplicationV2", (app, html) => {
     const doc = app.document;
-    const root = html instanceof HTMLElement ? html : html[0];
 
     if (doc?.documentName === "Item" && doc.type === "loot") {
+        const root = html instanceof HTMLElement ? html : html[0];
         injectItemUI(doc, root);
     } else if (doc?.documentName === "Actor") {
+        // Use app.element (live DOM) instead of html param which may be a detached fragment in AppV2
         requestAnimationFrame(() => {
-            handleActorUI(app, root);
+            const liveRoot = app.element;
+            if (!liveRoot) return;
+
+            handleActorUI(app, liveRoot);
 
             if (app._dhContainerScroll !== undefined) {
-                const scrollable = root.querySelector(".scrollable");
+                const scrollable = liveRoot.querySelector(".scrollable");
                 if (scrollable) {
                     scrollable.scrollTop = app._dhContainerScroll;
                     setTimeout(() => { scrollable.scrollTop = app._dhContainerScroll; }, 50);
@@ -112,7 +120,8 @@ function injectItemUI(item, element) {
 /* -------------------------------------------- */
 
 /**
- * Handles visual nesting of loot items inside containers on the actor sheet.
+ * Handles visual nesting of inventory items inside containers on the actor sheet.
+ * Supports loot, consumable, weapon, and armor items as children of loot containers.
  * Moves child items after their parent container row, applies indentation,
  * and manages collapse/expand toggle icons.
  * Triggered during renderApplicationV2 for Actor documents.
@@ -123,8 +132,9 @@ function handleActorUI(app, element) {
     const actor = app.document;
     if (!actor) return;
 
-    const lootItems = element.querySelectorAll('li.inventory-item[data-item-type="loot"]');
-    if (!lootItems.length) return;
+    const selector = CONTAINABLE_TYPES.map(t => `li.inventory-item[data-item-type="${t}"]`).join(", ");
+    const inventoryItems = element.querySelectorAll(selector);
+    if (!inventoryItems.length) return;
 
     /** @type {Map<string, HTMLElement>} Maps item IDs to their DOM rows */
     const rowMap = new Map();
@@ -132,7 +142,7 @@ function handleActorUI(app, element) {
     const childrenMap = new Map();
 
     // First pass: build maps of rows and parent-child relationships
-    for (const row of lootItems) {
+    for (const row of inventoryItems) {
         const itemId = row.dataset.itemId;
         if (!itemId) continue;
         rowMap.set(itemId, row);
@@ -148,13 +158,13 @@ function handleActorUI(app, element) {
     }
 
     // Second pass: inject container toggle icons and nest children
-    for (const row of lootItems) {
+    for (const row of inventoryItems) {
         const itemId = row.dataset.itemId;
         const item = actor.items.get(itemId);
         if (!item) continue;
 
         if (item.getFlag(MODULE_ID, "isContainer")) {
-            _injectContainerToggle(row, item, actor, app, element);
+            _injectContainerToggle(row, item, actor, app);
         }
 
         const parentId = item.getFlag(MODULE_ID, "containerId");
@@ -192,9 +202,8 @@ function handleActorUI(app, element) {
  * @param {Item} item - The container item document.
  * @param {Actor} actor - The owning actor document.
  * @param {ApplicationV2} app - The actor sheet application.
- * @param {HTMLElement} element - The actor sheet's root HTML element.
  */
-function _injectContainerToggle(row, item, actor, app, element) {
+function _injectContainerToggle(row, item, actor, app) {
     const nameSpan = row.querySelector(".item-name");
     if (!nameSpan || nameSpan.querySelector(".dh-container-toggle")) return;
 
@@ -210,7 +219,8 @@ function _injectContainerToggle(row, item, actor, app, element) {
         ev.stopPropagation();
 
         // Save scroll position before the flag update triggers a re-render
-        const scrollable = element.querySelector(".scrollable");
+        const liveRoot = app.element;
+        const scrollable = liveRoot?.querySelector(".scrollable");
         if (scrollable) app._dhContainerScroll = scrollable.scrollTop;
 
         await item.setFlag(MODULE_ID, "isCollapsed", !isCollapsed);
@@ -224,8 +234,9 @@ function _injectContainerToggle(row, item, actor, app, element) {
 /* -------------------------------------------- */
 
 /**
- * Handles drag-and-drop of loot items onto container rows in the actor sheet.
- * Dropping a loot item onto a container assigns it; dropping elsewhere removes assignment.
+ * Handles drag-and-drop of items onto container rows in the actor sheet.
+ * Supports loot, consumable, weapon, and armor items being dropped into loot containers.
+ * Dropping elsewhere removes the container assignment.
  * Triggered by dropActorSheetData hook.
  * @param {Actor} actor - The actor receiving the drop.
  * @param {ActorSheet} sheet - The actor sheet application.
@@ -236,10 +247,10 @@ Hooks.on("dropActorSheetData", async (actor, sheet, data) => {
     if (data.type !== "Item" || !data.uuid) return true;
 
     const droppedItem = fromUuidSync(data.uuid);
-    if (!droppedItem || droppedItem.type !== "loot" || droppedItem.parent?.id !== actor.id) return true;
+    if (!droppedItem || !CONTAINABLE_TYPES.includes(droppedItem.type) || droppedItem.parent?.id !== actor.id) return true;
 
     const targetEl = document.elementFromPoint(window.event.clientX, window.event.clientY);
-    const targetRow = targetEl?.closest('li.inventory-item[data-item-type="loot"]');
+    const targetRow = targetEl?.closest("li.inventory-item");
 
     if (targetRow) {
         const targetId = targetRow.dataset.itemId;
