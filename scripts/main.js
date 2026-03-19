@@ -183,7 +183,8 @@ function handleActorUI(app, element) {
         if (!item) continue;
 
         if (item.getFlag(MODULE_ID, "isContainer")) {
-            _injectContainerToggle(row, item, app);
+            const childCount = childrenMap.has(itemId) ? childrenMap.get(itemId).length : 0;
+            _injectContainerToggle(row, item, app, childCount);
         }
 
         const parentId = item.getFlag(MODULE_ID, "containerId");
@@ -225,8 +226,9 @@ function handleActorUI(app, element) {
  * @param {HTMLElement} row - The container item's list element.
  * @param {Item} item - The container item document.
  * @param {ApplicationV2} app - The actor sheet application.
+ * @param {number} childCount - Number of items currently inside this container.
  */
-function _injectContainerToggle(row, item, app) {
+function _injectContainerToggle(row, item, app, childCount) {
     const header = row.querySelector(".inventory-item-header");
     if (!header || header.querySelector(".dh-container-toggle")) return;
 
@@ -242,7 +244,7 @@ function _injectContainerToggle(row, item, app) {
     icon.style.marginRight = "6px";
 
     btn.appendChild(icon);
-    btn.appendChild(document.createTextNode(isCollapsed ? "Expand" : "Collapse"));
+    btn.appendChild(document.createTextNode(`${isCollapsed ? "Expand" : "Collapse"} (${childCount})`));
 
     btn.addEventListener("click", async (ev) => {
         ev.preventDefault();
