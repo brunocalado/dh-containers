@@ -211,7 +211,7 @@ function _injectContainerToggle(row, item, actor, app) {
 
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "dh-container-toggle";
+    btn.className = `dh-container-toggle ${isCollapsed ? "dh-toggle-collapsed" : "dh-toggle-expanded"}`;
     btn.textContent = isCollapsed ? "Expand" : "Collapse";
 
     btn.addEventListener("click", async (ev) => {

@@ -22,7 +22,26 @@
     white-space: nowrap;
 }
 
-.dh-container-toggle:hover {
+/* Expanded state — green tint */
+.dh-container-toggle.dh-toggle-expanded {
+    border-color: rgba(100, 200, 120, 0.5);
+    background: rgba(100, 200, 120, 0.15);
+    color: #8fd4a0;
+}
+
+.dh-container-toggle.dh-toggle-expanded:hover {
     opacity: 1;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(100, 200, 120, 0.25);
+}
+
+/* Collapsed state — amber tint */
+.dh-container-toggle.dh-toggle-collapsed {
+    border-color: rgba(230, 180, 80, 0.5);
+    background: rgba(230, 180, 80, 0.15);
+    color: #e6b450;
+}
+
+.dh-container-toggle.dh-toggle-collapsed:hover {
+    opacity: 1;
+    background: rgba(230, 180, 80, 0.25);
 }

@@ -1,24 +1,24 @@
-# SWADE Containers
+# DH Containers
 
-A solution for inventory organization in Savage Worlds. Nest items inside backpacks, chests, and pouches directly within your character sheet to eliminate clutter.
+A simple inventory organizer for Daggerheart on Foundry VTT. Turn any loot item into a visual container and drag weapons, armor, consumables, or other loot inside it.
 
-### **Full Description:**
+### Why?
 
-SWADE Containers enhances the standard SWADE actor sheet by allowing items to act as functional parents for other gear. Instead of a flat list of items, this module provides a hierarchical view that makes managing complex inventories simple and visual.
+Daggerheart character sheets show all items in a flat list. As your inventory grows, it becomes hard to find things. DH Containers lets you group related items together — put potions in a pouch, weapons in a chest, or travel gear in a backpack. Click to collapse and declutter your sheet.
 
-<img src="assets/screenshot.png" alt="Savage Containers Preview" width="500">
+### How to Use
 
-### **How it Works:**
+1. **Mark a container:** Open any loot item, go to the **Settings** tab, and check **Container**.
+2. **Add items:** Drag any weapon, armor, consumable, or loot item onto the container in your inventory.
+3. **Collapse/Expand:** Click the button on the container row to hide or show its contents.
+4. **Remove items:** Drag an item out of the container and drop it elsewhere in the inventory.
 
-1.  **Create a Container:** Open any item (e.g., "Backpack"), go to **Properties**, and check **Is a Container?**.
-2.  **Fantasy Companion Rules:** Check SWADE Backpack to apply the 50% weight reduction to all items stored inside.
-3.  **Folding:** Click the arrow icon next to a container name to collapse or expand its contents.
-4.  **Organize Gear:** Drag any Gear or Consumable item and drop it directly onto your container's name to nest it.
-5.  **Container Weight Link:** Setting a container to Stored automatically updates all nested items, ensuring weight totals are calculated correctly.
+> This is purely visual — items are not physically moved or modified. It just organizes how they appear on the sheet.
 
+### Installation
 
-### **Installation:**
-To install, import this manifest into the module browser or search for 'SWADE Containers'.
+Import this manifest URL in Foundry's module installer:
 
-**Manifest URL:**
-`https://raw.githubusercontent.com/ivan-hr/swade-containers/main/module.json`
+```
+https://raw.githubusercontent.com/brunocalado/dh-containers/main/module.json
+```
