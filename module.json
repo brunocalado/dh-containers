@@ -1,6 +1,6 @@
 {
   "id": "dh-containers",
-  "title": "DH Containers",
+  "title": "Daggerheart: Containers",
   "description": "Organize your Daggerheart inventory with visual containers and collapsible nesting.",
 
   "authors": [
@@ -11,7 +11,7 @@
     }
   ],
 
-  "version": "0.1.0",
+  "version": "0.1.1",
 
   "compatibility": {
     "minimum": "14",
