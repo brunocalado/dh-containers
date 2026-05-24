@@ -1,5 +1,11 @@
 /* DH Containers — Visual nesting styles for Daggerheart items */
 
+/* Module-specific palette — no Foundry core equivalent for these accent colours */
+:root {
+    --dh-containers-color-expanded: #2dd4bf;
+    --dh-containers-color-collapsed: #fbbf24;
+}
+
 /* Child item indentation inside a container */
 .dh-item-child {
     padding-left: 48px !important;
@@ -14,6 +20,11 @@
     border-radius: 2px;
     padding-top: 4px !important;
     padding-bottom: 4px !important;
+}
+
+/* Hidden state for collapsed container children — toggled via JS classList */
+.dh-item-hidden {
+    display: none !important;
 }
 
 /* Collapse/expand toggle button on container rows */
@@ -32,34 +43,38 @@
     align-items: center;
     justify-content: center;
     height: 28px;
-}
 
-/* Expanded state — vibrant green */
-.dh-container-toggle.dh-toggle-expanded {
-    border-color: #2dd4bf;
-    background: linear-gradient(135deg, rgba(45, 212, 191, 0.25), rgba(45, 212, 191, 0.1));
-    color: #2dd4bf;
-    box-shadow: 0 0 8px rgba(45, 212, 191, 0.3);
-}
+    i {
+        margin-right: 6px;
+    }
 
-.dh-container-toggle.dh-toggle-expanded:hover {
-    opacity: 1;
-    background: linear-gradient(135deg, rgba(45, 212, 191, 0.4), rgba(45, 212, 191, 0.2));
-    box-shadow: 0 0 12px rgba(45, 212, 191, 0.5);
-    transform: scale(1.05);
-}
+    /* Expanded state — vibrant teal */
+    &.dh-toggle-expanded {
+        border-color: var(--dh-containers-color-expanded);
+        background: linear-gradient(135deg, rgba(45, 212, 191, 0.25), rgba(45, 212, 191, 0.1));
+        color: var(--dh-containers-color-expanded);
+        box-shadow: 0 0 8px rgba(45, 212, 191, 0.3);
 
-/* Collapsed state — vibrant amber */
-.dh-container-toggle.dh-toggle-collapsed {
-    border-color: #fbbf24;
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(251, 191, 36, 0.1));
-    color: #fbbf24;
-    box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
-}
+        &:hover {
+            opacity: 1;
+            background: linear-gradient(135deg, rgba(45, 212, 191, 0.4), rgba(45, 212, 191, 0.2));
+            box-shadow: 0 0 12px rgba(45, 212, 191, 0.5);
+            transform: scale(1.05);
+        }
+    }
 
-.dh-container-toggle.dh-toggle-collapsed:hover {
-    opacity: 1;
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.4), rgba(251, 191, 36, 0.2));
-    box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
-    transform: scale(1.05);
+    /* Collapsed state — vibrant amber */
+    &.dh-toggle-collapsed {
+        border-color: var(--dh-containers-color-collapsed);
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(251, 191, 36, 0.1));
+        color: var(--dh-containers-color-collapsed);
+        box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+
+        &:hover {
+            opacity: 1;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.4), rgba(251, 191, 36, 0.2));
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+            transform: scale(1.05);
+        }
+    }
 }

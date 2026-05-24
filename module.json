@@ -2,33 +2,44 @@
   "id": "dh-containers",
   "title": "DH Containers",
   "description": "Organize your Daggerheart inventory with visual containers and collapsible nesting.",
+
   "authors": [
     {
-      "name": "Mestre Digital"
+      "name": "Mestre Digital",
+      "url": "http://youtube.com/@mestredigital",      
+      "flags": {}
     }
   ],
 
-  "version": "0.0.3",
+  "version": "0.1.0",
 
   "compatibility": {
-    "minimum": "13",
-    "verified": "13"
+    "minimum": "14",
+    "verified": "14"
   },
-  
+
   "relationships": {
     "systems": [
       {
         "id": "daggerheart",
-        "type": "system"
+        "type": "system",
+        "compatibility": {}
       }
     ]
   },
   
-  "esmodules": ["scripts/main.js"],
-  "styles": ["styles/style.css"],
+  "esmodules": [
+    "scripts/main.js"
+  ],
+
+  "styles": [
+    {
+      "src": "styles/style.css"
+    }
+  ],
 
   "url": "https://github.com/brunocalado/dh-containers",
   "manifest": "https://raw.githubusercontent.com/brunocalado/dh-containers/main/module.json",
-  "download": "https://codeload.github.com/brunocalado/dh-containers/zip/main"   
-  
+  "download": "https://codeload.github.com/brunocalado/dh-containers/zip/main",
+  "flags": {}
 }

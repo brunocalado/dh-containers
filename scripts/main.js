@@ -11,10 +11,7 @@
  * native flag system rather than foundry.abstract.DataModel for efficiency and simplicity.
  */
 
-const MODULE_ID = "dh-containers";
-
-/** Item types that can be placed inside a container */
-const CONTAINABLE_TYPES = ["loot", "consumable", "weapon", "armor"];
+import { MODULE_ID, CONTAINABLE_TYPES } from "./constants.js";
 
 /** Tracks last drag-over coordinates for drop target detection */
 let lastDragCoords = { x: 0, y: 0 };
@@ -108,14 +105,18 @@ function injectItemUI(item, element) {
     const fieldset = element.querySelector(".tab.settings fieldset.two-columns");
     if (!fieldset) return;
 
-    const label = document.createElement("span");
-    label.textContent = "Container";
-    label.classList.add("dh-container-setting");
+    // Mirror the native two-columns grid pattern: <span> in column 1, <div.form-group> in column 2.
+    // Putting both inside a single form-group stacks them in one cell, which is what caused the
+    // label-above-checkbox layout. Using a separate span ensures the grid places them side by side.
+    const span = document.createElement("span");
+    span.textContent = "Container";
+    span.classList.add("dh-container-setting");
 
     const wrapper = document.createElement("div");
-    wrapper.classList.add("form-group", "dh-container-setting");
+    wrapper.classList.add("form-group");
 
-    const labelEl = document.createElement("label");
+    const labelEl = document.createElement("label");  // empty, matching the native <label></label> pattern
+
     const fields = document.createElement("div");
     fields.classList.add("form-fields");
 
@@ -128,7 +129,7 @@ function injectItemUI(item, element) {
     wrapper.appendChild(labelEl);
     wrapper.appendChild(fields);
 
-    fieldset.appendChild(label);
+    fieldset.appendChild(span);
     fieldset.appendChild(wrapper);
 }
 
@@ -212,7 +213,7 @@ function handleActorUI(app, element) {
 
                 // Hide child items if their container is collapsed, making collapse/expand feel natural
                 const isCollapsed = !!parentItem.getFlag(MODULE_ID, "isCollapsed");
-                row.style.display = isCollapsed ? "none" : "";
+                row.classList.toggle("dh-item-hidden", isCollapsed);
             }
         }
     }
@@ -241,7 +242,6 @@ function _injectContainerToggle(row, item, app, childCount) {
     const icon = document.createElement("i");
     // Use chevron icons to visually indicate expand/collapse state (right = collapsed, down = expanded)
     icon.className = isCollapsed ? "fas fa-chevron-right" : "fas fa-chevron-down";
-    icon.style.marginRight = "6px";
 
     btn.appendChild(icon);
     btn.appendChild(document.createTextNode(`${isCollapsed ? "Expand" : "Collapse"} (${childCount})`));
