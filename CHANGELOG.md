@@ -1,3 +1,8 @@
+# 0.1.2
+
+- [Added] Declared a conflict with Daggerheart: Nice Sheets.
+- [Changed] Releases are now published as GitHub releases; the manifest and download URLs point to the latest release.
+
 # 0.1.0
 
 - v14 only
